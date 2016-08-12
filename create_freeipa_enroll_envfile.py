@@ -38,14 +38,17 @@ def write_env_file(output_file, env_dict):
                   default_flow_style=False)
     LOG.info("environment file written to %s" % os.path.abspath(output_file))
 
-def get_environment_dict(password, server, domain, stack):
-    return collections.OrderedDict([
-        ('parameter_defaults', {
+def get_environment_dict(password, server, domain, stack, dns_servers):
+    parameter_defaults = {
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
             'FreeIPADomain': domain,
             'CloudDomain': domain,
-        }),
+        }
+    if dns_servers:
+        parameter_defaults['DnsServers'] = dns_servers
+    return collections.OrderedDict([
+        ('parameter_defaults', parameter_defaults),
         ('resource_registry', {
             'OS::TripleO::AllNodesExtraConfig': os.path.abspath(stack)
         })
@@ -97,6 +100,9 @@ def _get_options():
     parser.add_argument('-d', '--domain', required=True,
                         help=("The FreeIPA managed domain (must match the "
                               "kerberos realm."))
+    parser.add_argument('-D', '--dns-server', action='append',
+                        help=("The DNS server(s) that the overcloud should "
+                              "have configured."))
     parser.add_argument('-S', '--stack',
                         default='templates/freeipa-extraconfig.yaml',
                         help=("location of the stack template that will be "
@@ -112,7 +118,7 @@ def main():
     args = _get_options()
     _validate_input(args)
     env_dict = get_environment_dict(args.password, args.server, args.domain,
-                                    args.stack)
+                                    args.stack, args.dns_server)
     write_env_file(args.output, env_dict)
 if __name__ == '__main__':
     main()
