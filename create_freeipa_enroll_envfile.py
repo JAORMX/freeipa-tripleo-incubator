@@ -44,6 +44,7 @@ def get_environment_dict(password, server, domain, stack):
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
             'FreeIPADomain': domain,
+            'CloudDomain': domain,
         }),
         ('resource_registry', {
             'OS::TripleO::AllNodesExtraConfig': os.path.abspath(stack)
