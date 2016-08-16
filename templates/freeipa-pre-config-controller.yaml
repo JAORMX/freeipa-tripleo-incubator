@@ -30,6 +30,9 @@ resources:
         - name: ipa_domain
       config: |
         #!/bin/sh
+        if [ ! $(hostname -f | grep "${ipa_domain}$") ]; then
+            hostnamectl set-hostname "$(hostname).${ipa_domain}"
+        fi
         yum install -y ipa-client
         if [ ! -f /etc/krb5.keytab ]; then
             ipa-client-install --server ${ipa_server} -w ${otp} \
