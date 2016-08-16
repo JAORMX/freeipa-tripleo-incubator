@@ -36,7 +36,7 @@ resources:
         - name: otp
         - name: ipa_server
         - name: ipa_domain
-      config:
+      config: |
         #!/bin/sh
         yum install -y ipa-client
         if [ ! -f /etc/krb5.keytab ]; then
