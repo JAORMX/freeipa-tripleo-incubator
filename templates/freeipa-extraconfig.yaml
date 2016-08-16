@@ -45,7 +45,7 @@ resources:
         fi
         kinit -k -t /etc/krb5.keytab
 
-  FreeIPAEnrollmentDeployment:
+  FreeIPAControllerEnrollmentDeployment:
     type: OS::Heat::SoftwareDeploymentGroup
     properties:
       name: FreeIPAEnrollmentDeployment
@@ -56,7 +56,22 @@ resources:
         ipa_server: {get_param: FreeIPAServer}
         ipa_domain: {get_param: FreeIPADomain}
 
+  FreeIPAComputeEnrollmentDeployment:
+    type: OS::Heat::SoftwareDeploymentGroup
+    properties:
+      name: FreeIPAEnrollmentDeployment
+      config: {get_resource: FreeIPAEnrollmentConfig}
+      servers: {get_param: compute_servers}
+      input_values:
+        otp: {get_param: FreeIPAOTP}
+        ipa_server: {get_param: FreeIPAServer}
+        ipa_domain: {get_param: FreeIPADomain}
+
 outputs:
   deploy_stdout:
     description: Output of the FreeIPA enrollment deployment
-    value: {get_attr: [FreeIPAEnrollmentDeployment, deploy_stdout]}
+    value:
+      - list_join:
+        - '\n'
+        - - {get_attr: [FreeIPAControllerEnrollmentDeployment, deploy_stdout]}
+          - {get_attr: [FreeIPAComputeEnrollmentDeployment, deploy_stdout]}
