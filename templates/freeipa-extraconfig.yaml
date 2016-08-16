@@ -59,4 +59,4 @@ resources:
 outputs:
   deploy_stdout:
     description: Output of the FreeIPA enrollment deployment
-    value: {get_attr: [CADeployment, deploy_stdout]}
+    value: {get_attr: [FreeIPAEnrollmentDeployment, deploy_stdout]}
