@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Generate an environment file to enroll the controller nodes to FreeIPA via the
-AllNodesExtraConfig hook.
+ExtraConfigPre hook.
 
 Please note that this is only used for testing.
 """
@@ -50,7 +50,7 @@ def get_environment_dict(password, server, domain, stack, dns_servers):
     return collections.OrderedDict([
         ('parameter_defaults', parameter_defaults),
         ('resource_registry', {
-            'OS::TripleO::AllNodesExtraConfig': os.path.abspath(stack)
+            'OS::TripleO::ControllerExtraConfigPre': os.path.abspath(stack)
         })
     ])
 
@@ -104,9 +104,9 @@ def _get_options():
                         help=("The DNS server(s) that the overcloud should "
                               "have configured."))
     parser.add_argument('-S', '--stack',
-                        default='templates/freeipa-extraconfig.yaml',
+                        default='templates/freeipa-pre-config-controller.yaml',
                         help=("location of the stack template that will be "
-                              "used as AllNodesExtraConfig"))
+                              "used as ExtraConfigPre"))
     parser.add_argument('-o', '--output',
                         default='freeipa-enroll.yaml',
                         help='file that the environment will be written to.')

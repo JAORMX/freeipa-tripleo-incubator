@@ -1,0 +1,54 @@
+heat_template_version: 2015-10-15
+
+description: Enroll nodes to FreeIPA
+
+parameters:
+  server:
+    description: ID of the controller node to apply this config to
+    type: string
+
+  FreeIPAOTP:
+    description: 'OTP that will be used for FreeIPA enrollment'
+    type: string
+    default: ThisIsMySecret
+    hidden: true
+  FreeIPAServer:
+    description: 'FreeIPA server DNS name'
+    type: string
+  FreeIPADomain:
+    description: 'FreeIPA domain; this will also be used as the kerberos realm'
+    type: string
+
+resources:
+  FreeIPAEnrollmentConfig:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      inputs:
+        - name: otp
+        - name: ipa_server
+        - name: ipa_domain
+      config: |
+        #!/bin/sh
+        yum install -y ipa-client
+        if [ ! -f /etc/krb5.keytab ]; then
+            ipa-client-install --server ${ipa_server} -w ${otp} \
+                --domain=${ipa_domain} -U
+        fi
+        kinit -k -t /etc/krb5.keytab
+
+  FreeIPAControllerEnrollmentDeployment:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+      name: FreeIPAEnrollmentDeployment
+      config: {get_resource: FreeIPAEnrollmentConfig}
+      server: {get_param: server}
+      input_values:
+        otp: {get_param: FreeIPAOTP}
+        ipa_server: {get_param: FreeIPAServer}
+        ipa_domain: {get_param: FreeIPADomain}
+
+outputs:
+  deploy_stdout:
+    description: Output of the FreeIPA enrollment deployment
+    value: {get_attr: [FreeIPAControllerEnrollmentDeployment, deploy_stdout]}
