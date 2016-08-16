@@ -38,9 +38,12 @@ resources:
         - name: ipa_domain
       config:
         #!/bin/sh
-        echo hostname -f
-        ipa-client-install --server ${ipa_server} -w ${otp} \
-          --domain=${ipa_domain} -U
+        yum install -y ipa-client
+        if [ ! -f /etc/krb5.keytab ]; then
+            ipa-client-install --server ${ipa_server} -w ${otp} \
+                --domain=${ipa_domain} -U
+        fi
+        kinit -k -t /etc/krb5.keytab
 
   FreeIPAEnrollmentDeployment:
     type: OS::Heat::StructuredDeploymentGroup
