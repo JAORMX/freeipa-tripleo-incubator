@@ -29,7 +29,7 @@ parameters:
 
 resources:
   FreeIPAEnrollmentConfig:
-    type: OS::Heat::StructuredConfig
+    type: OS::Heat::SoftwareConfig
     properties:
       group: script
       inputs:
@@ -46,7 +46,7 @@ resources:
         kinit -k -t /etc/krb5.keytab
 
   FreeIPAEnrollmentDeployment:
-    type: OS::Heat::StructuredDeploymentGroup
+    type: OS::Heat::SoftwareDeploymentGroup
     properties:
       name: FreeIPAEnrollmentDeployment
       config: {get_resource: FreeIPAEnrollmentConfig}
