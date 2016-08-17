@@ -42,7 +42,6 @@ def _get_parameter_defaults_dict(password, server, domain, dns_servers):
     parameter_defaults = {
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
-            'FreeIPADomain': domain,
             'CloudDomain': domain,
         }
     if dns_servers:

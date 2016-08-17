@@ -15,6 +15,11 @@ parameters:
   cephstorage_servers:
     type: json
 
+  CloudDomain:
+    description: >
+      The configured cloud domain; this will also be used as the kerberos realm
+    type: string
+
   FreeIPAOTP:
     description: 'OTP that will be used for FreeIPA enrollment'
     type: string
@@ -22,9 +27,6 @@ parameters:
     hidden: true
   FreeIPAServer:
     description: 'FreeIPA server DNS name'
-    type: string
-  FreeIPADomain:
-    description: 'FreeIPA domain; this will also be used as the kerberos realm'
     type: string
 
 resources:
@@ -54,7 +56,7 @@ resources:
       input_values:
         otp: {get_param: FreeIPAOTP}
         ipa_server: {get_param: FreeIPAServer}
-        ipa_domain: {get_param: FreeIPADomain}
+        ipa_domain: {get_param: CloudDomain}
 
   FreeIPAComputeEnrollmentDeployment:
     type: OS::Heat::SoftwareDeploymentGroup
@@ -65,7 +67,7 @@ resources:
       input_values:
         otp: {get_param: FreeIPAOTP}
         ipa_server: {get_param: FreeIPAServer}
-        ipa_domain: {get_param: FreeIPADomain}
+        ipa_domain: {get_param: CloudDomain}
 
 outputs:
   deploy_stdout:
