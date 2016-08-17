@@ -38,7 +38,7 @@ def write_env_file(output_file, env_dict):
                   default_flow_style=False)
     LOG.info("environment file written to %s" % os.path.abspath(output_file))
 
-def get_environment_dict(password, server, domain, stack, dns_servers):
+def _get_parameter_defaults_dict(password, server, domain, dns_servers):
     parameter_defaults = {
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
@@ -47,11 +47,24 @@ def get_environment_dict(password, server, domain, stack, dns_servers):
         }
     if dns_servers:
         parameter_defaults['DnsServers'] = dns_servers
+    return parameter_defaults
+
+def _get_resource_registry_dict(stack, add_computes):
+    resource_registry = {
+        'OS::TripleO::ControllerExtraConfigPre': os.path.abspath(stack)
+    }
+    if add_computes:
+        resource_registry['OS::TripleO::ComputeExtraConfigPre'] = (
+            os.path.abspath(stack))
+    return resource_registry
+
+def get_environment_dict(password, server, domain, dns_servers, stack,
+                         add_computes):
     return collections.OrderedDict([
-        ('parameter_defaults', parameter_defaults),
-        ('resource_registry', {
-            'OS::TripleO::ControllerExtraConfigPre': os.path.abspath(stack)
-        })
+        ('parameter_defaults', _get_parameter_defaults_dict(password, server,
+                                                            domain,
+                                                            dns_servers)),
+        ('resource_registry', _get_resource_registry_dict(stack, add_computes))
     ])
 
 def _confirm(message):
@@ -103,6 +116,8 @@ def _get_options():
     parser.add_argument('-D', '--dns-server', action='append',
                         help=("The DNS server(s) that the overcloud should "
                               "have configured."))
+    parser.add_argument('-c', '--add-computes', action='store_true',
+                        help="Also override the compute preconfig.")
     parser.add_argument('-S', '--stack',
                         default='templates/freeipa-pre-config-controller.yaml',
                         help=("location of the stack template that will be "
@@ -118,7 +133,8 @@ def main():
     args = _get_options()
     _validate_input(args)
     env_dict = get_environment_dict(args.password, args.server, args.domain,
-                                    args.stack, args.dns_server)
+                                    args.dns_server, args.stack,
+                                    args.add_computes)
     write_env_file(args.output, env_dict)
 if __name__ == '__main__':
     main()
