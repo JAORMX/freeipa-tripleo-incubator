@@ -38,7 +38,8 @@ def write_env_file(output_file, env_dict):
                   default_flow_style=False)
     LOG.info("environment file written to %s" % os.path.abspath(output_file))
 
-def _get_parameter_defaults_dict(password, server, domain, dns_servers):
+def get_freeipa_parameter_defaults_dict(password, server, domain,
+                                         dns_servers):
     parameter_defaults = {
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
@@ -48,7 +49,7 @@ def _get_parameter_defaults_dict(password, server, domain, dns_servers):
         parameter_defaults['DnsServers'] = dns_servers
     return parameter_defaults
 
-def _get_resource_registry_dict(stack, add_computes):
+def get_freeipa_resource_registry_dict(stack, add_computes):
     resource_registry = {
         'OS::TripleO::ControllerExtraConfigPre': os.path.abspath(stack)
     }
@@ -57,14 +58,50 @@ def _get_resource_registry_dict(stack, add_computes):
             os.path.abspath(stack))
     return resource_registry
 
-def get_environment_dict(password, server, domain, dns_servers, stack,
-                         add_computes):
-    return collections.OrderedDict([
-        ('parameter_defaults', _get_parameter_defaults_dict(password, server,
-                                                            domain,
-                                                            dns_servers)),
-        ('resource_registry', _get_resource_registry_dict(stack, add_computes))
-    ])
+def _form_fqdn(name, domain):
+    return "%s.%s" % (name, domain)
+
+def get_cloud_names_parameter_defaults_dict(cloud_name,
+                                             cloud_name_internal,
+                                             cloud_name_storage,
+                                             cloud_name_storage_management,
+                                             cloud_name_management,
+                                             cloud_domain):
+    return {
+        'CloudName': _form_fqdn(cloud_name, cloud_domain),
+        'CloudNameInternal': _form_fqdn(cloud_name_internal, cloud_domain),
+        'CloudNameStorage': _form_fqdn(cloud_name_storage, cloud_domain),
+        'CloudNameStorageManagement': _form_fqdn(cloud_name_storage_management,
+                                                 cloud_domain),
+        'CloudNameManagement': _form_fqdn(cloud_name_management, cloud_domain),
+    }
+
+def get_freeipa_environment_dict(password, server, domain, dns_servers, stack,
+                                 add_computes):
+    return get_environment_dict(
+        get_freeipa_parameter_defaults_dict(password, server, domain,
+                                             dns_servers),
+        get_freeipa_resource_registry_dict(stack, add_computes))
+
+def get_cloud_names_environment_dict(cloud_name, cloud_name_internal,
+                                     cloud_name_storage,
+                                     cloud_name_storage_management,
+                                     cloud_name_management, cloud_domain):
+    return get_environment_dict(
+        get_cloud_names_parameter_defaults_dict(cloud_name,
+                                                 cloud_name_internal,
+                                                 cloud_name_storage,
+                                                 cloud_name_storage_management,
+                                                 cloud_name_management,
+                                                 cloud_domain))
+
+def get_environment_dict(parameter_defaults=None, resource_registry=None):
+    resulting_dict = collections.OrderedDict()
+    if parameter_defaults:
+        resulting_dict['parameter_defaults'] = parameter_defaults
+    if resource_registry:
+        resulting_dict['resource_registry'] = resource_registry
+    return resulting_dict
 
 def _confirm(message):
     user_input = raw_input(message)
@@ -105,6 +142,7 @@ def _validate_input(args):
 
 def _get_options():
     parser = argparse.ArgumentParser(description=__doc__)
+    # Base stack arguments
     parser.add_argument('-w', '--password', required=True,
                         help='The OTP that will be used for the nodes.')
     parser.add_argument('-s', '--server', required=True,
@@ -123,7 +161,40 @@ def _get_options():
                               "used as ExtraConfigPre"))
     parser.add_argument('-o', '--output',
                         default='freeipa-enroll.yaml',
-                        help='file that the environment will be written to.')
+                        help=('file that the freeipa-related environment will '
+                              'be written to.'))
+
+    # Cloud name environment arguments
+    parser.add_argument('--cloud-name',
+                        default='overcloud',
+                        help=("The shortname for the overcloud (the domain "
+                              "will be appended to this)."))
+    parser.add_argument('--cloud-name-internal',
+                        default='overcloud.internalapi',
+                        help=("The shortname name of the overcloud's internal "
+                              "API endpoint (the domain will be appended to "
+                              "this)."))
+    parser.add_argument('--cloud-name-storage',
+                        default='overcloud.storage',
+                        help=("The shortname name of the overcloud's storage "
+                              "endpoint (the domain will be appended to "
+                              "this)."))
+    parser.add_argument('--cloud-name-storage-management',
+                        default='overcloud.storagemgmt',
+                        help=("The shortname name of the overcloud's storage "
+                              " management endpoint (the domain will be "
+                              "appended to this)."))
+    parser.add_argument('--cloud-name-management',
+                        default='overcloud.management',
+                        help=("The shortname name of the overcloud's "
+                              "management endpoint (the domain will be "
+                              "appended to this)."))
+    parser.add_argument('--cloud-names-output',
+                        default='cloud-names.yaml',
+                        help=("file that the cloud-names environment will be "
+                              "written to."))
+
+    # Extra
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite the output file if it already exists.')
     return parser.parse_args()
@@ -131,9 +202,15 @@ def _get_options():
 def main():
     args = _get_options()
     _validate_input(args)
-    env_dict = get_environment_dict(args.password, args.server, args.domain,
-                                    args.dns_server, args.stack,
-                                    args.add_computes)
+    env_dict = get_freeipa_environment_dict(args.password, args.server,
+                                            args.domain, args.dns_server,
+                                            args.stack, args.add_computes)
     write_env_file(args.output, env_dict)
+
+    env_dict = get_cloud_names_environment_dict(
+        args.cloud_name, args.cloud_name_internal, args.cloud_name_storage,
+        args.cloud_name_storage_management, args.cloud_name_management,
+        args.domain)
+    write_env_file(args.cloud_names_output, env_dict)
 if __name__ == '__main__':
     main()
