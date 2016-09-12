@@ -65,7 +65,7 @@ def get_cloud_names_parameter_defaults_dict(cloud_name,
                                              cloud_name_internal,
                                              cloud_name_storage,
                                              cloud_name_storage_management,
-                                             cloud_name_management,
+                                             cloud_name_ctlplane,
                                              cloud_domain):
     return {
         'CloudName': _form_fqdn(cloud_name, cloud_domain),
@@ -73,7 +73,7 @@ def get_cloud_names_parameter_defaults_dict(cloud_name,
         'CloudNameStorage': _form_fqdn(cloud_name_storage, cloud_domain),
         'CloudNameStorageManagement': _form_fqdn(cloud_name_storage_management,
                                                  cloud_domain),
-        'CloudNameManagement': _form_fqdn(cloud_name_management, cloud_domain),
+        'CloudNameCtlplane': _form_fqdn(cloud_name_ctlplane, cloud_domain),
     }
 
 def get_freeipa_environment_dict(password, server, domain, dns_servers, stack,
@@ -86,13 +86,13 @@ def get_freeipa_environment_dict(password, server, domain, dns_servers, stack,
 def get_cloud_names_environment_dict(cloud_name, cloud_name_internal,
                                      cloud_name_storage,
                                      cloud_name_storage_management,
-                                     cloud_name_management, cloud_domain):
+                                     cloud_name_ctlplane, cloud_domain):
     return get_environment_dict(
         get_cloud_names_parameter_defaults_dict(cloud_name,
                                                  cloud_name_internal,
                                                  cloud_name_storage,
                                                  cloud_name_storage_management,
-                                                 cloud_name_management,
+                                                 cloud_name_ctlplane,
                                                  cloud_domain))
 
 def get_environment_dict(parameter_defaults=None, resource_registry=None):
@@ -184,10 +184,10 @@ def _get_options():
                         help=("The shortname name of the overcloud's storage "
                               " management endpoint (the domain will be "
                               "appended to this)."))
-    parser.add_argument('--cloud-name-management',
-                        default='overcloud.management',
+    parser.add_argument('--cloud-name-ctlplane',
+                        default='overcloud.ctlplane',
                         help=("The shortname name of the overcloud's "
-                              "management endpoint (the domain will be "
+                              "ctlplane endpoint (the domain will be "
                               "appended to this)."))
     parser.add_argument('--cloud-names-output',
                         default='cloud-names.yaml',
@@ -209,7 +209,7 @@ def main():
 
     env_dict = get_cloud_names_environment_dict(
         args.cloud_name, args.cloud_name_internal, args.cloud_name_storage,
-        args.cloud_name_storage_management, args.cloud_name_management,
+        args.cloud_name_storage_management, args.cloud_name_ctlplane,
         args.domain)
     write_env_file(args.cloud_names_output, env_dict)
 if __name__ == '__main__':
