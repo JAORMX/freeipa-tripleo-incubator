@@ -21,7 +21,7 @@ LOG = logging.getLogger(__name__)
 NETWORKS = ['ctlplane', 'internalapi', 'storage', 'storagemgmt']
 
 CLOUD_VIP_HOSTS_TEMPLATE = 'overcloud'
-CLOUD_VIP_HOSTS_SERVICES = ['haproxy']
+CLOUD_VIP_HOSTS_SERVICES = ['haproxy', 'mysql']
 
 
 CONTROLLERS_TEMPLATE = 'overcloud-controller-{node_id}'
