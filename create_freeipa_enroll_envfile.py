@@ -133,7 +133,7 @@ def _assert_not_empty(server, domain):
 def _warn_unmatching_domain(server, domain):
     if not server.endswith(domain):
         LOG.warning(("FreeIPA's server domain doesn't seem to match the given "
-                     "domain %s ... watch out") % args.domain)
+                     "domain %s ... watch out") % domain)
 
 def _validate_input(args):
     _confirmation_if_output_file_exists(args.output, args.overwrite)
