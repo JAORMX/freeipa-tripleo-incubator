@@ -39,7 +39,7 @@ def write_env_file(output_file, env_dict):
     LOG.info("environment file written to %s" % os.path.abspath(output_file))
 
 def get_freeipa_parameter_defaults_dict(password, server, domain,
-                                         dns_servers):
+                                        dns_servers, ipa_ip):
     parameter_defaults = {
             'FreeIPAOTP': password,
             'FreeIPAServer': server,
@@ -47,6 +47,8 @@ def get_freeipa_parameter_defaults_dict(password, server, domain,
         }
     if dns_servers:
         parameter_defaults['DnsServers'] = dns_servers
+    if ipa_ip:
+        parameter_defaults['FreeIPAIPAddress'] = ipa_ip
     return parameter_defaults
 
 def get_freeipa_resource_registry_dict(stack, add_computes):
@@ -76,11 +78,11 @@ def get_cloud_names_parameter_defaults_dict(cloud_name,
         'CloudNameCtlplane': _form_fqdn(cloud_name_ctlplane, cloud_domain),
     }
 
-def get_freeipa_environment_dict(password, server, domain, dns_servers, stack,
-                                 add_computes):
+def get_freeipa_environment_dict(password, server, domain, dns_servers, ipa_ip,
+                                 stack, add_computes):
     return get_environment_dict(
         get_freeipa_parameter_defaults_dict(password, server, domain,
-                                             dns_servers),
+                                            dns_servers, ipa_ip),
         get_freeipa_resource_registry_dict(stack, add_computes))
 
 def get_cloud_names_environment_dict(cloud_name, cloud_name_internal,
@@ -155,6 +157,8 @@ def _get_options():
                               "have configured."))
     parser.add_argument('-c', '--add-computes', action='store_true',
                         help="Also override the compute preconfig.")
+    parser.add_argument('-i', '--ipa-ip',
+                        help="The FreeIPA server's IP address.")
     parser.add_argument('-S', '--stack',
                         default='templates/freeipa-pre-config-controller.yaml',
                         help=("location of the stack template that will be "
@@ -204,7 +208,8 @@ def main():
     _validate_input(args)
     env_dict = get_freeipa_environment_dict(args.password, args.server,
                                             args.domain, args.dns_server,
-                                            args.stack, args.add_computes)
+                                            args.ipa_ip, args.stack,
+                                            args.add_computes)
     write_env_file(args.output, env_dict)
 
     env_dict = get_cloud_names_environment_dict(

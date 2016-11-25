@@ -20,6 +20,10 @@ parameters:
   FreeIPAServer:
     description: 'FreeIPA server DNS name'
     type: string
+  FreeIPAIPAddress:
+    default: ''
+    description: 'FreeIPA server IP Address'
+    type: string
 
 resources:
   FreeIPAEnrollmentConfig:
@@ -30,8 +34,13 @@ resources:
         - name: otp
         - name: ipa_server
         - name: ipa_domain
+        - name: ipa_ip
       config: |
         #!/bin/sh
+        sed -i "/${ipa_server}/d" /etc/hosts
+        if [ -n "${ipa_ip}" ]; then
+            echo "${ipa_ip}    ${ipa_server}" >> /etc/hosts
+        fi
         if [ ! $(hostname -f | grep "${ipa_domain}$") ]; then
             hostnamectl set-hostname "$(hostname).${ipa_domain}"
         fi
@@ -52,6 +61,7 @@ resources:
         otp: {get_param: FreeIPAOTP}
         ipa_server: {get_param: FreeIPAServer}
         ipa_domain: {get_param: CloudDomain}
+        ipa_ip: {get_param: FreeIPAIPAddress}
 
 outputs:
   deploy_stdout:
