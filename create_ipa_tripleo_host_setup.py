@@ -25,7 +25,7 @@ CLOUD_VIP_HOSTS_SERVICES = ['haproxy', 'mysql']
 
 
 CONTROLLERS_TEMPLATE = 'overcloud-controller-{node_id}'
-CONTROLLER_HOSTS_SERVICES = ['HTTP']
+CONTROLLER_HOSTS_SERVICES = ['HTTP', 'rabbitmq']
 
 
 COMPUTES_TEMPLATE = 'overcloud-novacompute-{node_id}'
